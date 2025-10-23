@@ -18,8 +18,8 @@ import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 
 /**
- * Redis repositories are all {@link KeyValueRepository} subtypes within {@code app.rootPackage} (set in config) - to
- * speed up component scan. Why Redisson? - See
+ * Redis repositories are all {@link KeyValueRepository} subtypes within {@code app.rootPackage} (set in app config) -
+ * to speed up component scan. Why Redisson? - See
  * <a href="https://redisson.org/feature-comparison-redisson-vs-jedis.html">here</a>.
  */
 @Configuration(proxyBeanMethods = false)
@@ -42,7 +42,7 @@ public class RedisConfig {
      * @return customizer
      */
     @Bean
-    public RedissonAutoConfigurationCustomizer redissonAutoConfigurationCustomizer() {
+    public RedissonAutoConfigurationCustomizer customRedissonAutoConfigurationCustomizer() {
         return this::populateRedissonConfig;
     }
 
@@ -53,7 +53,10 @@ public class RedisConfig {
      * @return same as argument
      */
     private Config populateRedissonConfig(Config redissonConfig) {
-        log.info("Connecting to Redis: {}", redisProperties);
+        // avoid accidentally exposing passwords in logs
+        log.info("Connecting to Redis at '{}://{}:{}' (database: '{}')",
+                redisProperties.getScheme(), redisProperties.getHost(), redisProperties.getPort(),
+                redisProperties.getDatabase());
 
         if (!"rediss".equalsIgnoreCase(redisProperties.getScheme())) {
             log.warn("Redis is not SSL protected - your password and data may leak!");
