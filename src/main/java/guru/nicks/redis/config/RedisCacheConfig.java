@@ -2,7 +2,6 @@ package guru.nicks.redis.config;
 
 import guru.nicks.cache.domain.CacheConstants;
 import guru.nicks.cache.domain.CacheProperties;
-import guru.nicks.redis.RedisSerializerAdapter;
 import guru.nicks.utils.TimeUtils;
 
 import jakarta.annotation.PostConstruct;
@@ -22,6 +21,7 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -49,7 +49,7 @@ public class RedisCacheConfig {
      * {@link Cacheable @Cacheable} to work seamlessly with any method results. Also, such cache is internal and not
      * meant to be accessed from other languages (unlike DTOs which are usually JSON).
      */
-    private final RedisSerializerAdapter<?> redisSerializerAdapter;
+    private final RedisSerializer<?> redisSerializer;
 
     // DI
     private final CacheProperties cacheProperties;
@@ -116,7 +116,7 @@ public class RedisCacheConfig {
 
     private RedisCacheConfiguration createRedisCacheConfig(Duration ttl) {
         if (valueSerializer == null) {
-            valueSerializer = RedisSerializationContext.SerializationPair.fromSerializer(redisSerializerAdapter);
+            valueSerializer = RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer);
         }
 
         return RedisCacheConfiguration.defaultCacheConfig()

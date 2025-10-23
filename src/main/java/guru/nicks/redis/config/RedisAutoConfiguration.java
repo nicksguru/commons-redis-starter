@@ -1,14 +1,20 @@
 package guru.nicks.redis.config;
 
+import guru.nicks.redis.RedisSerializerAdapterImpl;
 import guru.nicks.redis.domain.RedisProperties;
+import guru.nicks.redis.impl.DistributedLockServiceImpl;
+import guru.nicks.serializer.NativeJavaSerializer;
+import guru.nicks.service.DistributedLockService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.redisson.config.SslVerificationMode;
 import org.redisson.spring.starter.RedissonAutoConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,6 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Redis repositories are all {@link KeyValueRepository} subtypes within {@code app.rootPackage} (set in app config) -
@@ -28,10 +35,22 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
         includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = KeyValueRepository.class))
 @Slf4j
 @RequiredArgsConstructor
-public class RedisConfig {
+public class RedisAutoConfiguration {
 
     // DI
     private final RedisProperties redisProperties;
+
+    @ConditionalOnMissingBean(DistributedLockService.class)
+    @Bean
+    public DistributedLockService distributedLockService(RedissonClient redissonClient) {
+        return new DistributedLockServiceImpl(redissonClient);
+    }
+
+    @ConditionalOnMissingBean(RedisSerializer.class)
+    @Bean
+    public RedisSerializer<Object> redisSerializer(NativeJavaSerializer nativeJavaSerializer) {
+        return new RedisSerializerAdapterImpl<>(nativeJavaSerializer);
+    }
 
     /**
      * Beans of this class are called from {@link RedissonAutoConfiguration#redisson()} which creates own {@link Config}
