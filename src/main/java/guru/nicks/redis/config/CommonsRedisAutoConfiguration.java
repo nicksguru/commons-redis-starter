@@ -35,7 +35,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
         includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = KeyValueRepository.class))
 @Slf4j
 @RequiredArgsConstructor
-public class RedisAutoConfiguration {
+public class CommonsRedisAutoConfiguration {
 
     // DI
     private final RedisProperties redisProperties;

@@ -40,7 +40,7 @@ import java.util.function.IntFunction;
 @EnableCaching // to honor @Cacheable
 @RequiredArgsConstructor
 @Slf4j
-public class RedisCacheConfig {
+public class CommonsRedisCacheConfig {
 
     /**
      * {@link GenericJackson2JsonRedisSerializer} throws error 'Type id handling not implemented for type

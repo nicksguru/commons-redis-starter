@@ -3,8 +3,8 @@ package guru.nicks.cucumber;
 import guru.nicks.cucumber.config.TestDefaultCacheManager;
 import guru.nicks.cucumber.world.TextWorld;
 import guru.nicks.redis.RedisSerializerAdapterImpl;
-import guru.nicks.redis.config.RedisAutoConfiguration;
-import guru.nicks.redis.config.RedisCacheConfig;
+import guru.nicks.redis.config.CommonsRedisAutoConfiguration;
+import guru.nicks.redis.config.CommonsRedisCacheConfig;
 import guru.nicks.serializer.OneNioSerializer;
 import guru.nicks.test.RedisContainerRunner;
 
@@ -24,7 +24,8 @@ import org.springframework.test.context.TestPropertySource;
         // scenario-scoped states
         TextWorld.class,
 
-        RedisAutoConfiguration.class, RedisCacheConfig.class, OneNioSerializer.class, RedisSerializerAdapterImpl.class,
+        CommonsRedisAutoConfiguration.class, CommonsRedisCacheConfig.class, OneNioSerializer.class,
+        RedisSerializerAdapterImpl.class,
         RedisCacheTestComponent.class,
 
         RedissonAutoConfigurationV2.class, TestDefaultCacheManager.class
