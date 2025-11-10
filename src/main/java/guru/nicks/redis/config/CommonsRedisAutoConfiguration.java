@@ -2,8 +2,11 @@ package guru.nicks.redis.config;
 
 import guru.nicks.redis.RedisSerializerAdapterImpl;
 import guru.nicks.redis.domain.RedisProperties;
+import guru.nicks.redis.impl.BlockedJwtServiceImpl;
 import guru.nicks.redis.impl.DistributedLockServiceImpl;
+import guru.nicks.redis.repository.BlockedTokenRepository;
 import guru.nicks.serializer.NativeJavaSerializer;
+import guru.nicks.service.BlockedJwtService;
 import guru.nicks.service.DistributedLockService;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,12 @@ public class CommonsRedisAutoConfiguration {
 
     // DI
     private final RedisProperties redisProperties;
+
+    @ConditionalOnMissingBean(BlockedJwtService.class)
+    @Bean
+    public BlockedJwtService blockedJwtService(BlockedTokenRepository blockedTokenRepository) {
+        return new BlockedJwtServiceImpl(blockedTokenRepository);
+    }
 
     @ConditionalOnMissingBean(DistributedLockService.class)
     @Bean
