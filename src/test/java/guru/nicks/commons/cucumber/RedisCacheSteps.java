@@ -1,4 +1,4 @@
-package guru.nicks.cucumber;
+package guru.nicks.commons.cucumber;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;

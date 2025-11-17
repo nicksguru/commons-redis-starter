@@ -1,8 +1,8 @@
-package guru.nicks.cucumber;
+package guru.nicks.commons.cucumber;
 
-import guru.nicks.cucumber.world.TextWorld;
-import guru.nicks.redis.impl.DistributedLockServiceImpl;
-import guru.nicks.service.DistributedLockService;
+import guru.nicks.commons.cucumber.world.TextWorld;
+import guru.nicks.commons.redis.impl.DistributedLockServiceImpl;
+import guru.nicks.commons.service.DistributedLockService;
 
 import io.cucumber.java.After;
 import io.cucumber.java.Before;

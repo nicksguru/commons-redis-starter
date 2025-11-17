@@ -1,6 +1,6 @@
-package guru.nicks.cucumber;
+package guru.nicks.commons.cucumber;
 
-import guru.nicks.cache.domain.CacheConstants;
+import guru.nicks.commons.cache.domain.CacheConstants;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;

@@ -1,11 +1,11 @@
-package guru.nicks.cucumber;
+package guru.nicks.commons.cucumber;
 
-import guru.nicks.auth.domain.BlockedTokenHash;
-import guru.nicks.cucumber.world.TextWorld;
-import guru.nicks.redis.impl.BlockedJwtServiceImpl;
-import guru.nicks.redis.repository.BlockedTokenRepository;
-import guru.nicks.service.BlockedJwtService;
-import guru.nicks.utils.AuthUtils;
+import guru.nicks.commons.auth.domain.BlockedTokenHash;
+import guru.nicks.commons.cucumber.world.TextWorld;
+import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
+import guru.nicks.commons.redis.repository.BlockedTokenRepository;
+import guru.nicks.commons.service.BlockedJwtService;
+import guru.nicks.commons.utils.AuthUtils;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;

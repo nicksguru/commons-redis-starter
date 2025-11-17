@@ -1,12 +1,12 @@
-package guru.nicks.cucumber;
+package guru.nicks.commons.cucumber;
 
-import guru.nicks.cucumber.config.TestDefaultCacheManager;
-import guru.nicks.cucumber.world.TextWorld;
-import guru.nicks.redis.RedisSerializerAdapterImpl;
-import guru.nicks.redis.config.CommonsRedisAutoConfiguration;
-import guru.nicks.redis.config.CommonsRedisCacheConfig;
-import guru.nicks.serializer.OneNioSerializer;
-import guru.nicks.test.RedisContainerRunner;
+import guru.nicks.commons.cucumber.config.TestDefaultCacheManager;
+import guru.nicks.commons.cucumber.world.TextWorld;
+import guru.nicks.commons.redis.RedisSerializerAdapterImpl;
+import guru.nicks.commons.redis.config.CommonsRedisAutoConfiguration;
+import guru.nicks.commons.redis.config.CommonsRedisCacheConfig;
+import guru.nicks.commons.serializer.OneNioSerializer;
+import guru.nicks.commons.test.RedisContainerRunner;
 
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfigurationV2;

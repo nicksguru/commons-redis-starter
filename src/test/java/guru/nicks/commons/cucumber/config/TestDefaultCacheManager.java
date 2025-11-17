@@ -1,6 +1,6 @@
-package guru.nicks.cucumber.config;
+package guru.nicks.commons.cucumber.config;
 
-import guru.nicks.cache.domain.CacheConstants;
+import guru.nicks.commons.cache.domain.CacheConstants;
 
 import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Primary;

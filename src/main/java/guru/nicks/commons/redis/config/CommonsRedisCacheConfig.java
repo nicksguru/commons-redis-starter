@@ -1,8 +1,8 @@
-package guru.nicks.redis.config;
+package guru.nicks.commons.redis.config;
 
-import guru.nicks.cache.domain.CacheConstants;
-import guru.nicks.cache.domain.CacheProperties;
-import guru.nicks.utils.TimeUtils;
+import guru.nicks.commons.cache.domain.CacheConstants;
+import guru.nicks.commons.cache.domain.CacheProperties;
+import guru.nicks.commons.utils.TimeUtils;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

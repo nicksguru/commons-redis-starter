@@ -1,4 +1,4 @@
-package guru.nicks.auth.domain;
+package guru.nicks.commons.auth.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

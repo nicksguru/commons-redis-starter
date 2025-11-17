@@ -1,4 +1,4 @@
-package guru.nicks.redis.domain;
+package guru.nicks.commons.redis.domain;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

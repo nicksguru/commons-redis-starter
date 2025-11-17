@@ -1,9 +1,9 @@
-package guru.nicks.redis.impl;
+package guru.nicks.commons.redis.impl;
 
-import guru.nicks.auth.domain.BlockedTokenHash;
-import guru.nicks.redis.repository.BlockedTokenRepository;
-import guru.nicks.service.BlockedJwtService;
-import guru.nicks.utils.AuthUtils;
+import guru.nicks.commons.auth.domain.BlockedTokenHash;
+import guru.nicks.commons.redis.repository.BlockedTokenRepository;
+import guru.nicks.commons.service.BlockedJwtService;
+import guru.nicks.commons.utils.AuthUtils;
 
 import am.ik.yavi.meta.ConstraintArguments;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
-import static guru.nicks.validation.dsl.ValiDsl.checkNotBlank;
+import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotBlank;
 
 /**
  * Redis-based implementation.

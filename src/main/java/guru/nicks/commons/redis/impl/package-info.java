@@ -1,4 +1,4 @@
 @NonNullApi
-package guru.nicks.redis.repository;
+package guru.nicks.commons.redis.impl;
 
 import org.springframework.lang.NonNullApi;

@@ -1,6 +1,6 @@
-package guru.nicks.redis;
+package guru.nicks.commons.redis;
 
-import guru.nicks.serializer.NativeJavaSerializer;
+import guru.nicks.commons.serializer.NativeJavaSerializer;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.serializer.RedisSerializer;

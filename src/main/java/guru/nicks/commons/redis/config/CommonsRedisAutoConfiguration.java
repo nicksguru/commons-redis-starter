@@ -1,13 +1,13 @@
-package guru.nicks.redis.config;
+package guru.nicks.commons.redis.config;
 
-import guru.nicks.redis.RedisSerializerAdapterImpl;
-import guru.nicks.redis.domain.RedisProperties;
-import guru.nicks.redis.impl.BlockedJwtServiceImpl;
-import guru.nicks.redis.impl.DistributedLockServiceImpl;
-import guru.nicks.redis.repository.BlockedTokenRepository;
-import guru.nicks.serializer.NativeJavaSerializer;
-import guru.nicks.service.BlockedJwtService;
-import guru.nicks.service.DistributedLockService;
+import guru.nicks.commons.redis.RedisSerializerAdapterImpl;
+import guru.nicks.commons.redis.domain.RedisProperties;
+import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
+import guru.nicks.commons.redis.impl.DistributedLockServiceImpl;
+import guru.nicks.commons.redis.repository.BlockedTokenRepository;
+import guru.nicks.commons.serializer.NativeJavaSerializer;
+import guru.nicks.commons.service.BlockedJwtService;
+import guru.nicks.commons.service.DistributedLockService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

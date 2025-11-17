@@ -1,6 +1,6 @@
-package guru.nicks.redis.impl;
+package guru.nicks.commons.redis.impl;
 
-import guru.nicks.service.DistributedLockService;
+import guru.nicks.commons.service.DistributedLockService;
 
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;

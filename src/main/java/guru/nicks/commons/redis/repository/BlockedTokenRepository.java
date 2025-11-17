@@ -1,6 +1,6 @@
-package guru.nicks.redis.repository;
+package guru.nicks.commons.redis.repository;
 
-import guru.nicks.auth.domain.BlockedTokenHash;
+import guru.nicks.commons.auth.domain.BlockedTokenHash;
 
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 
