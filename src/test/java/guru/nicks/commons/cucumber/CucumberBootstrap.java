@@ -10,6 +10,7 @@ import guru.nicks.commons.test.RedisContainerRunner;
 
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfigurationV2;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -30,6 +31,7 @@ import org.springframework.test.context.TestPropertySource;
 
         RedissonAutoConfigurationV2.class, TestDefaultCacheManager.class
 }, initializers = RedisContainerRunner.class)
+@EnableRedisRepositories(basePackages = "${app.rootPackage}")
 @ActiveProfiles("local")
 @TestPropertySource(properties = {
         //"logging.level.root=DEBUG",

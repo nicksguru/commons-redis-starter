@@ -19,23 +19,18 @@ import org.redisson.spring.starter.RedissonAutoConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.data.keyvalue.repository.KeyValueRepository;
-import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
+import java.io.Serializable;
+
 /**
- * Redis repositories are all {@link KeyValueRepository} subtypes within {@code app.rootPackage} (set in app config) -
- * to speed up component scan. Why Redisson? - See
- * <a href="https://redisson.org/feature-comparison-redisson-vs-jedis.html">here</a>.
+ * Why Redisson? - See <a href="https://redisson.org/feature-comparison-redisson-vs-jedis.html">here</a>.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(RedisProperties.class)
-@EnableRedisRepositories(basePackages = "${app.rootPackage}",
-        includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = KeyValueRepository.class))
 @Slf4j
 @RequiredArgsConstructor
 public class CommonsRedisAutoConfiguration {
@@ -43,21 +38,35 @@ public class CommonsRedisAutoConfiguration {
     // DI
     private final RedisProperties redisProperties;
 
+    /**
+     * Creates {@link BlockedJwtService} bean if it's not already present.
+     */
     @ConditionalOnMissingBean(BlockedJwtService.class)
     @Bean
     public BlockedJwtService blockedJwtService(BlockedTokenRepository blockedTokenRepository) {
+        log.debug("Building {} bean", BlockedJwtService.class.getSimpleName());
         return new BlockedJwtServiceImpl(blockedTokenRepository);
     }
 
+    /**
+     * Creates {@link DistributedLockService} bean if it's not already present.
+     */
     @ConditionalOnMissingBean(DistributedLockService.class)
     @Bean
     public DistributedLockService distributedLockService(RedissonClient redissonClient) {
+        log.debug("Building {} bean", DistributedLockService.class.getSimpleName());
         return new DistributedLockServiceImpl(redissonClient);
     }
 
+    /**
+     * Creates {@link RedisSerializer} bean if it's not already present. Needed for {@link Cacheable @Cacheable} to
+     * store all kinds of objects. Such objects, however, must be annotated with {@link Serializable @Serializable} -
+     * see {@link NativeJavaSerializer} for details.
+     */
     @ConditionalOnMissingBean(RedisSerializer.class)
     @Bean
     public RedisSerializer<Object> redisSerializer(NativeJavaSerializer nativeJavaSerializer) {
+        log.debug("Building {} bean", RedisSerializer.class.getSimpleName());
         return new RedisSerializerAdapterImpl<>(nativeJavaSerializer);
     }
 
@@ -70,7 +79,8 @@ public class CommonsRedisAutoConfiguration {
      * @return customizer
      */
     @Bean
-    public RedissonAutoConfigurationCustomizer customRedissonAutoConfigurationCustomizer() {
+    public RedissonAutoConfigurationCustomizer commonsRedissonAutoConfigurationCustomizer() {
+        log.debug("Building {} bean", RedissonAutoConfigurationCustomizer.class.getSimpleName());
         return this::populateRedissonConfig;
     }
 
