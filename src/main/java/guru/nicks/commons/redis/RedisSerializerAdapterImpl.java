@@ -13,16 +13,16 @@ import org.springframework.data.redis.serializer.SerializationException;
 public class RedisSerializerAdapterImpl<T> implements RedisSerializer<T> {
 
     // DI
-    private final NativeJavaSerializer nativeJavaSerializer;
+    private final NativeJavaSerializer delegate;
 
     @Override
     public byte[] serialize(T obj) throws SerializationException {
-        return nativeJavaSerializer.serialize(obj);
+        return delegate.serialize(obj);
     }
 
     @Override
     public T deserialize(byte[] bytes) throws SerializationException {
-        return nativeJavaSerializer.deserialize(bytes);
+        return delegate.deserialize(bytes);
     }
 
 }

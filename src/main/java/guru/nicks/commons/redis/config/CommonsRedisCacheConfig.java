@@ -29,11 +29,10 @@ import java.util.function.IntFunction;
 
 /**
  * Creates Redis caches with various TTLs according to {@link CacheProperties#getDurations()}. Additionally, put/evict
- * operations are synchronized with ongoing Spring-managed transactions.
+ * operations are synchronized with ongoing Spring-managed transactions if {@link CacheProperties#isTransactionAware()}
+ * is {@code true}.
  * <p>
  * WARNING: only results of public bean methods can be cached with {@link Cacheable @Cacheable} (because of proxies).
- *
- * @see #createRedisCacheManager(String, Duration)
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CacheProperties.class)
