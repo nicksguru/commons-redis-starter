@@ -2,7 +2,7 @@ package guru.nicks.commons.redis.config;
 
 import guru.nicks.commons.cache.domain.CacheConstants;
 import guru.nicks.commons.cache.domain.CacheProperties;
-import guru.nicks.commons.utils.TimeUtils;
+import guru.nicks.commons.utils.text.TimeUtils;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

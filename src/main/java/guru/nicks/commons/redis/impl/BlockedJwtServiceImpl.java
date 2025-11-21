@@ -3,7 +3,7 @@ package guru.nicks.commons.redis.impl;
 import guru.nicks.commons.auth.domain.BlockedTokenHash;
 import guru.nicks.commons.redis.repository.BlockedTokenRepository;
 import guru.nicks.commons.service.BlockedJwtService;
-import guru.nicks.commons.utils.AuthUtils;
+import guru.nicks.commons.utils.auth.AuthUtils;
 
 import am.ik.yavi.meta.ConstraintArguments;
 import com.github.benmanes.caffeine.cache.Cache;

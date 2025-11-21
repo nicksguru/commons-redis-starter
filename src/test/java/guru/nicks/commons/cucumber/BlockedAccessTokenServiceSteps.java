@@ -5,7 +5,7 @@ import guru.nicks.commons.cucumber.world.TextWorld;
 import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
 import guru.nicks.commons.redis.repository.BlockedTokenRepository;
 import guru.nicks.commons.service.BlockedJwtService;
-import guru.nicks.commons.utils.AuthUtils;
+import guru.nicks.commons.utils.auth.AuthUtils;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
