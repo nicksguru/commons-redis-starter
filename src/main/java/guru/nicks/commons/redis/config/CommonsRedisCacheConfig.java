@@ -19,7 +19,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
@@ -32,6 +31,14 @@ import java.util.function.IntFunction;
  * operations are synchronized with ongoing Spring-managed transactions if {@link CacheProperties#isTransactionAware()}
  * is {@code true}.
  * <p>
+ * The cache manager names are logged and can be used programmatically as well:
+ * <pre>
+ *  &#64;Qualifier("cacheManagerName")
+ *  private final CacheManager cacheManager;
+ *  ...
+ *  cacheManager.getCache("myCache").put("myKey", "myValue");
+ * </pre>
+ * <p>
  * WARNING: only results of public bean methods can be cached with {@link Cacheable @Cacheable} (because of proxies).
  */
 @Configuration(proxyBeanMethods = false)
@@ -41,17 +48,9 @@ import java.util.function.IntFunction;
 @Slf4j
 public class CommonsRedisCacheConfig {
 
-    /**
-     * {@link GenericJackson2JsonRedisSerializer} throws error 'Type id handling not implemented for type
-     * {@code Object}' for immutable collections, therefore native Java serializers are used. They create
-     * non-human-readable data but cover polymorphism and all Java classes reliably, which is crucial for
-     * {@link Cacheable @Cacheable} to work seamlessly with any method results. Also, such cache is internal and not
-     * meant to be accessed from other languages (unlike DTOs which are usually JSON).
-     */
-    private final RedisSerializer<?> redisSerializer;
-
     // DI
     private final CacheProperties cacheProperties;
+    private final RedisSerializer<?> redisSerializer;
     private final RedisConnectionFactory redisConnectionFactory;
     private final GenericApplicationContext appContext;
 
@@ -67,7 +66,7 @@ public class CommonsRedisCacheConfig {
     private String keyPrefix;
 
     @PostConstruct
-    public void init() {
+    private void init() {
         // let @Cacheable without any cache manager specified work as it does by default, in memory
         log.info("Default cache manager (@Cacheable without TTL) remains as it was, in-memory");
 

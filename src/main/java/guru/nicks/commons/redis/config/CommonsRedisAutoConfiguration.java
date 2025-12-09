@@ -6,9 +6,12 @@ import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
 import guru.nicks.commons.redis.impl.DistributedLockServiceImpl;
 import guru.nicks.commons.redis.repository.BlockedTokenRepository;
 import guru.nicks.commons.serializer.NativeJavaSerializer;
+import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.service.DistributedLockService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -19,15 +22,20 @@ import org.redisson.spring.starter.RedissonAutoConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
+import java.io.Externalizable;
 import java.io.Serializable;
 
 /**
  * Why Redisson? - See <a href="https://redisson.org/feature-comparison-redisson-vs-jedis.html">here</a>.
+ * <p>
+ * The serializer is {@link OneNioSerializer} because it's performant and handles various edge cases. It, just like
+ * {@link DefaultSerializer}, requires the payload to be {@link Serializable} (or {@link Externalizable}).
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(RedisProperties.class)
@@ -59,15 +67,15 @@ public class CommonsRedisAutoConfiguration {
     }
 
     /**
-     * Creates {@link RedisSerializer} bean if it's not already present. Needed for {@link Cacheable @Cacheable} to
-     * store all kinds of objects. Such objects, however, must be annotated with {@link Serializable @Serializable} -
-     * see {@link NativeJavaSerializer} for details.
+     * Creates {@link RedisSerializer} bean if it's not already present (specifically, a
+     * {@link GenericJackson2JsonRedisSerializer}).
      */
     @ConditionalOnMissingBean(RedisSerializer.class)
     @Bean
     public RedisSerializer<Object> redisSerializer(NativeJavaSerializer nativeJavaSerializer) {
         log.debug("Building {} bean", RedisSerializer.class.getSimpleName());
         return new RedisSerializerAdapterImpl<>(nativeJavaSerializer);
+        //return RedisSerializer.java(); //new CustomRedisSerializer();
     }
 
     /**
@@ -121,6 +129,20 @@ public class CommonsRedisAutoConfiguration {
         }
 
         return redissonConfig;
+    }
+
+    /**
+     * Can't just use a custom {@link ObjectMapper} - {@link GenericJackson2JsonRedisSerializer} sets up Jackson to
+     * store class names as property names, which is not trivial to do.
+     */
+    public static class CustomJsonSerializer extends GenericJackson2JsonRedisSerializer {
+
+        public CustomJsonSerializer() {
+            super();
+            // process Java 8 dates
+            getObjectMapper().registerModule(new JavaTimeModule());
+        }
+
     }
 
 }

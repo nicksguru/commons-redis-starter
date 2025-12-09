@@ -2,7 +2,6 @@ package guru.nicks.commons.cucumber;
 
 import guru.nicks.commons.cucumber.config.TestDefaultCacheManager;
 import guru.nicks.commons.cucumber.world.TextWorld;
-import guru.nicks.commons.redis.RedisSerializerAdapterImpl;
 import guru.nicks.commons.redis.config.CommonsRedisAutoConfiguration;
 import guru.nicks.commons.redis.config.CommonsRedisCacheConfig;
 import guru.nicks.commons.serializer.OneNioSerializer;
@@ -26,7 +25,6 @@ import org.springframework.test.context.TestPropertySource;
         TextWorld.class,
 
         CommonsRedisAutoConfiguration.class, CommonsRedisCacheConfig.class, OneNioSerializer.class,
-        RedisSerializerAdapterImpl.class,
         RedisCacheTestComponent.class,
 
         RedissonAutoConfigurationV2.class, TestDefaultCacheManager.class
