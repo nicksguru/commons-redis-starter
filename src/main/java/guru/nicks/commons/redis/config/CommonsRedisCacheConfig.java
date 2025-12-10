@@ -60,9 +60,9 @@ public class CommonsRedisCacheConfig {
     private RedisSerializationContext.SerializationPair<?> valueSerializer;
 
     /**
-     * Spring-native setting.
+     * Spring-native setting - optional prefix.
      */
-    @Value("${spring.cache.redis.key-prefix}")
+    @Value("${spring.cache.redis.key-prefix:}")
     private String keyPrefix;
 
     @PostConstruct
@@ -117,10 +117,15 @@ public class CommonsRedisCacheConfig {
             valueSerializer = RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer);
         }
 
-        return RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(ttl)
-                .prefixCacheNameWith(keyPrefix)
                 .serializeValuesWith(valueSerializer);
+
+        if (StringUtils.isNotBlank(keyPrefix)) {
+            config.prefixCacheNameWith(keyPrefix);
+        }
+
+        return config;
     }
 
     private void registerRedisCacheManagerBean(String beanName, RedisCacheConfiguration cacheConfig,
