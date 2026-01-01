@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import lombok.extern.jackson.Jacksonized;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -20,7 +19,6 @@ import org.springframework.validation.annotation.Validated;
 // immutability
 @Value
 @NonFinal // CGLIB creates a subclass to bind property values (nested classes don't need this)
-@Jacksonized
 @Builder(toBuilder = true)
 public class RedisProperties {
 
