@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
@@ -15,12 +14,9 @@ import org.springframework.data.redis.core.TimeToLive;
  * Access token (presumably a JWT) that has been blocked.
  */
 @RedisHash("blocked-access-token")
-//
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-//
-@Jacksonized
 @Builder(toBuilder = true)
 public class BlockedTokenHash {
 
