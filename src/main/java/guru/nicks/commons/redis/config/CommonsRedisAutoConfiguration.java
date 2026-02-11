@@ -1,5 +1,7 @@
 package guru.nicks.commons.redis.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import guru.nicks.commons.redis.RedisSerializerAdapterImpl;
 import guru.nicks.commons.redis.domain.RedisProperties;
 import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
@@ -9,9 +11,6 @@ import guru.nicks.commons.serializer.NativeJavaSerializer;
 import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.service.DistributedLockService;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,8 +33,9 @@ import java.io.Serializable;
 /**
  * Why Redisson? - See <a href="https://redisson.org/feature-comparison-redisson-vs-jedis.html">here</a>.
  * <p>
- * The serializer is {@link OneNioSerializer} because it's performant and handles various edge cases. It, just like
- * {@link DefaultSerializer}, requires the payload to be {@link Serializable} (or {@link Externalizable}).
+ * The serializer (created here as a Spring bean) is {@link OneNioSerializer} because it's performant and handles
+ * various edge cases. It, just like {@link DefaultSerializer}, requires the payload to be {@link Serializable} (or
+ * {@link Externalizable}).
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(RedisProperties.class)
@@ -45,6 +45,13 @@ public class CommonsRedisAutoConfiguration {
 
     // DI
     private final RedisProperties redisProperties;
+
+    @ConditionalOnMissingBean(NativeJavaSerializer.class)
+    @Bean
+    public NativeJavaSerializer nativeJavaSerializer() {
+        log.debug("Building {} bean", NativeJavaSerializer.class.getSimpleName());
+        return new OneNioSerializer();
+    }
 
     /**
      * Creates {@link BlockedJwtService} bean if it's not already present.
