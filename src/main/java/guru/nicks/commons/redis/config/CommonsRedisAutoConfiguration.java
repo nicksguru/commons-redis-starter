@@ -1,7 +1,5 @@
 package guru.nicks.commons.redis.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import guru.nicks.commons.redis.RedisSerializerAdapterImpl;
 import guru.nicks.commons.redis.domain.RedisProperties;
 import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
@@ -11,6 +9,9 @@ import guru.nicks.commons.serializer.NativeJavaSerializer;
 import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.service.DistributedLockService;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ public class CommonsRedisAutoConfiguration {
     // DI
     private final RedisProperties redisProperties;
 
-    @ConditionalOnMissingBean(NativeJavaSerializer.class)
+    @ConditionalOnMissingBean
     @Bean
     public NativeJavaSerializer nativeJavaSerializer() {
         log.debug("Building {} bean", NativeJavaSerializer.class.getSimpleName());
@@ -56,7 +57,7 @@ public class CommonsRedisAutoConfiguration {
     /**
      * Creates {@link BlockedJwtService} bean if it's not already present.
      */
-    @ConditionalOnMissingBean(BlockedJwtService.class)
+    @ConditionalOnMissingBean
     @Bean
     public BlockedJwtService blockedJwtService(BlockedTokenRepository blockedTokenRepository) {
         log.debug("Building {} bean", BlockedJwtService.class.getSimpleName());
@@ -66,7 +67,7 @@ public class CommonsRedisAutoConfiguration {
     /**
      * Creates {@link DistributedLockService} bean if it's not already present.
      */
-    @ConditionalOnMissingBean(DistributedLockService.class)
+    @ConditionalOnMissingBean
     @Bean
     public DistributedLockService distributedLockService(RedissonClient redissonClient) {
         log.debug("Building {} bean", DistributedLockService.class.getSimpleName());
@@ -77,7 +78,7 @@ public class CommonsRedisAutoConfiguration {
      * Creates {@link RedisSerializer} bean if it's not already present (specifically, a
      * {@link GenericJackson2JsonRedisSerializer}).
      */
-    @ConditionalOnMissingBean(RedisSerializer.class)
+    @ConditionalOnMissingBean
     @Bean
     public RedisSerializer<Object> redisSerializer(NativeJavaSerializer nativeJavaSerializer) {
         log.debug("Building {} bean", RedisSerializer.class.getSimpleName());

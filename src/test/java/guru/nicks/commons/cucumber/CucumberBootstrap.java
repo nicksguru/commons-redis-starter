@@ -9,6 +9,7 @@ import guru.nicks.commons.test.RedisContainerRunner;
 
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfigurationV2;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,11 +24,8 @@ import org.springframework.test.context.TestPropertySource;
 @ContextConfiguration(classes = {
         // scenario-scoped states
         TextWorld.class,
-
-        CommonsRedisAutoConfiguration.class, CommonsRedisCacheConfig.class, OneNioSerializer.class,
-        RedisCacheTestComponent.class,
-
-        RedissonAutoConfigurationV2.class, TestDefaultCacheManager.class
+        // Spring beans
+        OneNioSerializer.class, RedisCacheTestComponent.class, TestDefaultCacheManager.class
 }, initializers = RedisContainerRunner.class)
 @EnableRedisRepositories(basePackages = "${app.rootPackage}")
 @ActiveProfiles("local")
@@ -40,5 +38,6 @@ import org.springframework.test.context.TestPropertySource;
         // each cache manager corresponds to a certain TTL
         "cache.inMemory.maxEntriesPerCacheManager=50000",
 })
+@Import({CommonsRedisAutoConfiguration.class, CommonsRedisCacheConfig.class, RedissonAutoConfigurationV2.class})
 public class CucumberBootstrap {
 }
