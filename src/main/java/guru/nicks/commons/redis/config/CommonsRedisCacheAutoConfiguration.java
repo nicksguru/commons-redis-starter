@@ -10,21 +10,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -35,8 +30,6 @@ import java.util.function.IntFunction;
  * synchronized with ongoing Spring-managed transactions if {@link CacheProperties#isTransactionAware()} is {@code true}
  * (see description of the above flag for caveats).
  * <p>
- * Also, creates a {@link RedisTemplate} bean with string keys, injectable as {@code RedisTemplate<String, Object>}.
- * <p>
  * The cache manager names are logged and can be used programmatically as well:
  * <pre>
  *  &#64;Qualifier("cacheManagerName")
@@ -45,9 +38,8 @@ import java.util.function.IntFunction;
  *  cacheManager.getCache("myCache").put("myKey", "myValue");
  * </pre>
  * <p>
- * WARNING: only results of public bean methods can be cached with {@link Cacheable @Cacheable} (because of proxies).
+ * NOTE: only results of public bean methods can be cached with {@link Cacheable @Cacheable} (because of proxies).
  */
-@AutoConfiguration(after = CommonsRedisAutoConfiguration.class)
 @EnableConfigurationProperties(CacheProperties.class)
 @EnableCaching // to honor @Cacheable
 @RequiredArgsConstructor
@@ -79,22 +71,6 @@ public class CommonsRedisCacheAutoConfiguration {
         createRedisCacheManagers(cacheProperties.getDurations().getMinutes(), Duration::ofMinutes);
         createRedisCacheManagers(cacheProperties.getDurations().getHours(), Duration::ofHours);
         createRedisCacheManagers(cacheProperties.getDurations().getDays(), Duration::ofDays);
-    }
-
-    @ConditionalOnMissingBean(RedisTemplate.class)
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(
-            RedisConnectionFactory connectionFactory, RedisSerializer<?> redisSerializer) {
-        var template = new RedisTemplate<String, Object>();
-        template.setConnectionFactory(connectionFactory);
-
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(redisSerializer);
-
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(redisSerializer);
-
-        return template;
     }
 
     /**

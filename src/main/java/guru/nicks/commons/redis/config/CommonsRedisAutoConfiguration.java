@@ -12,7 +12,6 @@ import guru.nicks.commons.service.DistributedLockService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RedissonClient;
@@ -25,8 +24,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.io.Externalizable;
 import java.io.Serializable;
@@ -37,15 +39,13 @@ import java.io.Serializable;
  * The serializer (created here as a Spring bean) is {@link OneNioSerializer} because it's performant and handles
  * various edge cases. It, just like {@link DefaultSerializer}, requires the payload to be {@link Serializable} (or
  * {@link Externalizable}).
+ * <p>
+ * Also, creates a {@link RedisTemplate} bean with string keys, injectable as {@code RedisTemplate<String, Object>}.
  */
 @AutoConfiguration
 @EnableConfigurationProperties(RedisProperties.class)
 @Slf4j
-@RequiredArgsConstructor
 public class CommonsRedisAutoConfiguration {
-
-    // DI
-    private final RedisProperties redisProperties;
 
     @ConditionalOnMissingBean
     @Bean
@@ -95,9 +95,27 @@ public class CommonsRedisAutoConfiguration {
      * @return customizer
      */
     @Bean
-    public RedissonAutoConfigurationCustomizer commonsRedissonAutoConfigurationCustomizer() {
+    public RedissonAutoConfigurationCustomizer commonsRedissonAutoConfigurationCustomizer(
+            RedisProperties redisProperties) {
         log.debug("Building {} bean", RedissonAutoConfigurationCustomizer.class.getSimpleName());
-        return this::populateRedissonConfig;
+        return config -> populateRedissonConfig(config, redisProperties);
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory connectionFactory, RedisSerializer<?> redisSerializer) {
+        log.debug("Building {} bean", RedisTemplate.class.getSimpleName());
+        var template = new RedisTemplate<String, Object>();
+        template.setConnectionFactory(connectionFactory);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(redisSerializer);
+
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(redisSerializer);
+
+        return template;
     }
 
     /**
@@ -106,7 +124,7 @@ public class CommonsRedisAutoConfiguration {
      * @param redissonConfig config instance to populate
      * @return same as argument
      */
-    private Config populateRedissonConfig(Config redissonConfig) {
+    private Config populateRedissonConfig(Config redissonConfig, RedisProperties redisProperties) {
         // avoid accidentally exposing passwords in logs
         log.info("Connecting to Redis at '{}://{}:{}' (database: '{}')",
                 redisProperties.getScheme(), redisProperties.getHost(), redisProperties.getPort(),
