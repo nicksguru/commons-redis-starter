@@ -1,1 +1,2 @@
 guru.nicks.commons.redis.config.CommonsRedisAutoConfiguration
+guru.nicks.commons.redis.config.CommonsRedisCacheAutoConfiguration

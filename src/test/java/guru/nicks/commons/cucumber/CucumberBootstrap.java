@@ -3,7 +3,7 @@ package guru.nicks.commons.cucumber;
 import guru.nicks.commons.cucumber.config.TestDefaultCacheManager;
 import guru.nicks.commons.cucumber.world.TextWorld;
 import guru.nicks.commons.redis.config.CommonsRedisAutoConfiguration;
-import guru.nicks.commons.redis.config.CommonsRedisCacheConfig;
+import guru.nicks.commons.redis.config.CommonsRedisCacheAutoConfiguration;
 import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.test.RedisContainerRunner;
 
@@ -38,6 +38,7 @@ import org.springframework.test.context.TestPropertySource;
         // each cache manager corresponds to a certain TTL
         "cache.inMemory.maxEntriesPerCacheManager=50000",
 })
-@Import({CommonsRedisAutoConfiguration.class, CommonsRedisCacheConfig.class, RedissonAutoConfigurationV2.class})
+@Import({CommonsRedisAutoConfiguration.class, CommonsRedisCacheAutoConfiguration.class,
+        RedissonAutoConfigurationV2.class})
 public class CucumberBootstrap {
 }
