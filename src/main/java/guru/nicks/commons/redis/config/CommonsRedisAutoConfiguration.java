@@ -1,6 +1,5 @@
 package guru.nicks.commons.redis.config;
 
-import guru.nicks.commons.redis.RedisSerializerAdapterImpl;
 import guru.nicks.commons.redis.domain.RedisProperties;
 import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
 import guru.nicks.commons.redis.impl.DistributedLockServiceImpl;
@@ -10,7 +9,9 @@ import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.service.DistributedLockService;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,24 +24,17 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.io.Externalizable;
-import java.io.Serializable;
-
 /**
  * Why Redisson? - See <a href="https://redisson.org/feature-comparison-redisson-vs-jedis.html">here</a>.
  * <p>
- * The serializer (created here as a Spring bean) is {@link OneNioSerializer} because it's performant and handles
- * various edge cases. It, just like {@link DefaultSerializer}, requires the payload to be {@link Serializable} (or
- * {@link Externalizable}).
- * <p>
- * Also, creates a {@link RedisTemplate} bean with string keys, injectable as {@code RedisTemplate<String, Object>}.
+ * Creates a {@link RedisTemplate} bean with string keys, injectable as {@code RedisTemplate<String, Object>}. The
+ * serialization format is JSON.
  */
 @AutoConfiguration
 @EnableConfigurationProperties(RedisProperties.class)
@@ -75,15 +69,16 @@ public class CommonsRedisAutoConfiguration {
     }
 
     /**
-     * Creates {@link RedisSerializer} bean if it's not already present (specifically, a
-     * {@link GenericJackson2JsonRedisSerializer}).
+     * Creates {@link RedisSerializer} bean if it's not already present (specifically, a subclass
+     * {@link GenericJackson2JsonRedisSerializer} aware of Java 8 dates).
      */
     @ConditionalOnMissingBean
     @Bean
-    public RedisSerializer<Object> redisSerializer(NativeJavaSerializer nativeJavaSerializer) {
+    public RedisSerializer<Object> redisSerializer() {
         log.debug("Building {} bean", RedisSerializer.class.getSimpleName());
-        return new RedisSerializerAdapterImpl<>(nativeJavaSerializer);
-        //return RedisSerializer.java(); //new CustomRedisSerializer();
+        //return new RedisSerializerAdapterImpl<>(nativeJavaSerializer);
+        // JSON is 2x slower than OneNioSerializer, but the cache content is readable/debuggable
+        return new CustomJsonSerializer();
     }
 
     /**
@@ -165,8 +160,11 @@ public class CommonsRedisAutoConfiguration {
 
         public CustomJsonSerializer() {
             super();
-            // process Java 8 dates
-            getObjectMapper().registerModule(new JavaTimeModule());
+            getObjectMapper()
+                    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                    // process Java 8 dates
+                    .registerModule(new JavaTimeModule());
         }
 
     }
