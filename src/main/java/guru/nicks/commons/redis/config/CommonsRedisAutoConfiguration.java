@@ -101,16 +101,17 @@ public class CommonsRedisAutoConfiguration {
     public RedisTemplate<String, Object> redisTemplate(
             RedisConnectionFactory connectionFactory, RedisSerializer<?> redisSerializer) {
         log.debug("Building {} bean", RedisTemplate.class.getSimpleName());
-        var template = new RedisTemplate<String, Object>();
-        template.setConnectionFactory(connectionFactory);
 
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(redisSerializer);
+        var redisTemplate = new RedisTemplate<String, Object>();
+        redisTemplate.setConnectionFactory(connectionFactory);
 
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(redisSerializer);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(redisSerializer);
 
-        return template;
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(redisSerializer);
+
+        return redisTemplate;
     }
 
     /**
