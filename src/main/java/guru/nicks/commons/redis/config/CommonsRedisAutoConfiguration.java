@@ -4,8 +4,6 @@ import guru.nicks.commons.redis.domain.RedisProperties;
 import guru.nicks.commons.redis.impl.BlockedJwtServiceImpl;
 import guru.nicks.commons.redis.impl.DistributedLockServiceImpl;
 import guru.nicks.commons.redis.repository.BlockedTokenRepository;
-import guru.nicks.commons.serializer.NativeJavaSerializer;
-import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.service.DistributedLockService;
 
@@ -40,13 +38,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableConfigurationProperties(RedisProperties.class)
 @Slf4j
 public class CommonsRedisAutoConfiguration {
-
-    @ConditionalOnMissingBean
-    @Bean
-    public NativeJavaSerializer nativeJavaSerializer() {
-        log.debug("Building {} bean", NativeJavaSerializer.class.getSimpleName());
-        return new OneNioSerializer();
-    }
 
     /**
      * Creates {@link BlockedJwtService} bean if it's not already present.

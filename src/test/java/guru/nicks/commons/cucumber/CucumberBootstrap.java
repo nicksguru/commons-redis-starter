@@ -4,7 +4,6 @@ import guru.nicks.commons.cucumber.config.TestDefaultCacheManager;
 import guru.nicks.commons.cucumber.world.TextWorld;
 import guru.nicks.commons.redis.config.CommonsRedisAutoConfiguration;
 import guru.nicks.commons.redis.config.CommonsRedisCacheAutoConfiguration;
-import guru.nicks.commons.serializer.OneNioSerializer;
 import guru.nicks.commons.test.RedisContainerRunner;
 
 import io.cucumber.spring.CucumberContextConfiguration;
@@ -25,7 +24,7 @@ import org.springframework.test.context.TestPropertySource;
         // scenario-scoped states
         TextWorld.class,
         // Spring beans
-        OneNioSerializer.class, RedisCacheTestComponent.class, TestDefaultCacheManager.class
+        RedisCacheTestComponent.class, TestDefaultCacheManager.class
 }, initializers = RedisContainerRunner.class)
 @EnableRedisRepositories(basePackages = "${app.rootPackage}")
 @ActiveProfiles("local")
