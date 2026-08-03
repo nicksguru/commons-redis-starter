@@ -9,19 +9,16 @@ import guru.nicks.commons.utils.auth.AuthUtils;
 import am.ik.yavi.meta.ConstraintArguments;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
+import org.springframework.security.oauth2.jwt.Jwt;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.function.Function;
 
-import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotBlank;
+import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotNull;
 
 /**
  * Redis-based implementation.
@@ -29,57 +26,43 @@ import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotBlank;
 @RequiredArgsConstructor
 public class BlockedJwtServiceImpl implements BlockedJwtService {
 
-    // create caffeine cache for 'token blocked' status
-    // so that multiple apps don't block the same JWT simultaneously
+    public static final int IS_JWT_BLOCKED_CACHE_TTL_MINUTES = 10;
+
+    /**
+     * @see #isJwtBlocked(Jwt)
+     */
     private final Cache<String, Boolean> isJwtBlockedCache = Caffeine.newBuilder()
             .maximumSize(10_000)
-            .expireAfterWrite(Duration.ofMinutes(10))
+            .expireAfterWrite(Duration.ofMinutes(IS_JWT_BLOCKED_CACHE_TTL_MINUTES))
             .build();
 
     @NonNull // Lombok creates runtime nullness check for this own annotation only
     private final BlockedTokenRepository blockedTokenRepository;
 
     @Override
-    public <T> T ifBelongsToUser(String jwtAsString, String userId, Function<? super String, T> mapper) {
-        checkNotBlank(jwtAsString, "jwtAsString");
+    public <T> T ifBelongsToUser(Jwt jwt, String userId, Function<? super Jwt, T> mapper) {
+        checkNotNull(jwt, "jwt");
 
-        String jwtUserId;
-        // parse JWT (without verifying its expiration or signature!) just to ensure that the same user ID is in it
-        try {
-            JWT jwt = SignedJWT.parse(jwtAsString);
-            jwtUserId = jwt.getJWTClaimsSet().getSubject();
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Failed to parse JWT: " + e.getMessage(), e);
-        }
-
-        if (!userId.equals(jwtUserId)) {
+        if (!userId.equals(jwt.getSubject())) {
             throw new ForbiddenException("Auth token not owned by user");
         }
 
-        return mapper.apply(jwtAsString);
+        return mapper.apply(jwt);
     }
 
     @ConstraintArguments
     @Override
-    public void blockJwt(String jwtAsString) {
-        checkNotBlank(jwtAsString, _BlockedJwtServiceImplBlockJwtArgumentsMeta.JWTASSTRING.name());
+    public void blockJwt(Jwt jwt) {
+        checkNotNull(jwt, _BlockedJwtServiceImplBlockJwtArgumentsMeta.JWT.name());
 
-        Date expiresAt;
-        // parse JWT (without verifying its expiration or signature!) just to retrieve its expiration date
-        try {
-            JWT jwt = SignedJWT.parse(jwtAsString);
-            expiresAt = jwt.getJWTClaimsSet().getExpirationTime();
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Failed to parse JWT: " + e.getMessage(), e);
-        }
-
-        String cacheKey = generateCacheKey(jwtAsString);
+        Instant expiresAt = jwt.getExpiresAt();
+        String cacheKey = generateCacheKey(jwt);
 
         BlockedTokenHash blockedTokenHash = BlockedTokenHash.builder()
-                .tokenChecksum(generateCacheKey(jwtAsString))
+                .tokenChecksum(cacheKey)
                 // add some extra time to account for JWT expiration time precision
                 .timeToLiveSec(Duration
-                        .between(Instant.now(), expiresAt.toInstant())
+                        .between(Instant.now(), expiresAt)
                         .toSeconds() + 60)
                 .build();
         blockedTokenRepository.save(blockedTokenHash);
@@ -87,14 +70,16 @@ public class BlockedJwtServiceImpl implements BlockedJwtService {
     }
 
     /**
-     * Caches the result for 10 minutes in memory to reduce the load on Redis and make authentication faster
-     * ({@link KeyValueRepository#existsById(Object)} takes almost 50ms according to 99 percentile metrics).
+     * Caches the result for {@value #IS_JWT_BLOCKED_CACHE_TTL_MINUTES} minutes in memory to reduce the load on Redis
+     * and make authentication faster ({@link KeyValueRepository#existsById(Object)} takes almost 50ms according to 99
+     * percentile metrics).
      * <p>
      * WARNING: caching in memory means each app maintains its own cache (this is intentional for performance reasons).
      */
     @Override
-    public boolean isJwtBlocked(String jwtAsString) {
-        String cacheKey = generateCacheKey(jwtAsString);
+    public boolean isJwtBlocked(Jwt jwt) {
+        checkNotNull(jwt, "jwt");
+        String cacheKey = generateCacheKey(jwt);
 
         // theoretically, Caffeine may return null (for a missing key), but in this use case, it should not
         return Boolean.TRUE.equals(
@@ -102,14 +87,14 @@ public class BlockedJwtServiceImpl implements BlockedJwtService {
     }
 
     /**
-     * Generates a cache key for the given JWT string by calling
-     * {@link AuthUtils#calculateAccessTokenChecksum(String)}.
+     * Generates a cache key for the given JWT by calling {@link AuthUtils#calculateAccessTokenChecksum(String)} on the
+     * serialized token value.
      *
-     * @param jwtAsString The JWT token as a string.
+     * @param jwt token
      * @return cache key
      */
-    protected String generateCacheKey(String jwtAsString) {
-        return AuthUtils.calculateAccessTokenChecksum(jwtAsString);
+    protected String generateCacheKey(Jwt jwt) {
+        return AuthUtils.calculateAccessTokenChecksum(jwt.getTokenValue());
     }
 
 }

@@ -7,12 +7,6 @@ import guru.nicks.commons.redis.repository.BlockedTokenRepository;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.utils.auth.AuthUtils;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -23,9 +17,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,9 +41,10 @@ public class BlockedAccessTokenServiceSteps {
 
     private BlockedJwtService blockedJwtService;
     private boolean isBlockedResult;
-    private String accessToken;
+    private Jwt ifBelongsToUserResult;
+
+    private Jwt accessToken;
     private String userId;
-    private String ifBelongsToUserResult;
 
     @Before
     public void beforeEachScenario() {
@@ -64,21 +59,19 @@ public class BlockedAccessTokenServiceSteps {
 
     @Given("the access token is {booleanValue}")
     public void theAccessTokenIs(boolean isBlocked) {
-        accessToken = "some-token";
-        String checksum = AuthUtils.calculateAccessTokenChecksum(accessToken);
+        accessToken = Jwt.withTokenValue("some-token")
+                .header("alg", "none")
+                .claim("sub", "test-user")
+                .build();
+        String checksum = AuthUtils.calculateAccessTokenChecksum(accessToken.getTokenValue());
 
         when(blockedTokenRepository.existsById(checksum))
                 .thenReturn(isBlocked);
     }
 
     @Given("a valid access token with an expiration of {long} seconds")
-    public void aValidAccessTokenWithAnExpirationOfSeconds(long seconds) throws JOSEException {
+    public void aValidAccessTokenWithAnExpirationOfSeconds(long seconds) {
         aValidAccessTokenWithSubjectAndAnExpirationOfSeconds("test-user", seconds);
-    }
-
-    @Given("the following access token value")
-    public void theFollowingAccessTokenValue(String accessToken) {
-        this.accessToken = accessToken;
     }
 
     @When("'isBlocked' is called for the access token")
@@ -94,20 +87,12 @@ public class BlockedAccessTokenServiceSteps {
     }
 
     @Given("a valid access token with subject {string} and an expiration of {long} seconds")
-    public void aValidAccessTokenWithSubjectAndAnExpirationOfSeconds(String subject, long seconds)
-            throws JOSEException {
-        var claims = new JWTClaimsSet.Builder()
-                .subject(subject)
-                .issuer("https://example.com")
-                .expirationTime(Date.from(Instant.now().plusSeconds(seconds)))
+    public void aValidAccessTokenWithSubjectAndAnExpirationOfSeconds(String subject, long seconds) {
+        accessToken = Jwt.withTokenValue("token-" + subject)
+                .header("alg", "HS256")
+                .claim("sub", subject)
+                .expiresAt(Instant.now().plusSeconds(seconds))
                 .build();
-        var signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
-
-        // WARNING: this is simpler than using a key pair, but allowed for testing only!
-        // The secret length must be at least 256 bits.
-        var signer = new MACSigner("test-256-bit-secret-test-256-bit-secret-test-256-bit-secret");
-        signedJWT.sign(signer);
-        accessToken = signedJWT.serialize();
     }
 
     @Given("the user ID is {string}")
@@ -142,7 +127,7 @@ public class BlockedAccessTokenServiceSteps {
 
         assertThat(savedHash.getTokenChecksum())
                 .as("access token checksum")
-                .isEqualTo(AuthUtils.calculateAccessTokenChecksum(accessToken));
+                .isEqualTo(AuthUtils.calculateAccessTokenChecksum(accessToken.getTokenValue()));
 
         assertThat(savedHash.getTimeToLiveSec())
                 .as("time to live")
