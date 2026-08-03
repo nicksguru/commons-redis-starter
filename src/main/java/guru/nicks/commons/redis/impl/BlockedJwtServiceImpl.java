@@ -1,6 +1,7 @@
 package guru.nicks.commons.redis.impl;
 
 import guru.nicks.commons.auth.domain.BlockedTokenHash;
+import guru.nicks.commons.exception.http.ForbiddenException;
 import guru.nicks.commons.redis.repository.BlockedTokenRepository;
 import guru.nicks.commons.service.BlockedJwtService;
 import guru.nicks.commons.utils.auth.AuthUtils;
@@ -18,6 +19,7 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.function.Function;
 
 import static guru.nicks.commons.validation.dsl.ValiDsl.checkNotBlank;
 
@@ -37,14 +39,34 @@ public class BlockedJwtServiceImpl implements BlockedJwtService {
     @NonNull // Lombok creates runtime nullness check for this own annotation only
     private final BlockedTokenRepository blockedTokenRepository;
 
+    @Override
+    public <T> T ifBelongsToUser(String jwtAsString, String userId, Function<? super String, T> mapper) {
+        checkNotBlank(jwtAsString, "jwtAsString");
+
+        String jwtUserId;
+        // parse JWT (without verifying its expiration or signature!) just to ensure that the same user ID is in it
+        try {
+            JWT jwt = SignedJWT.parse(jwtAsString);
+            jwtUserId = jwt.getJWTClaimsSet().getSubject();
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Failed to parse JWT: " + e.getMessage(), e);
+        }
+
+        if (!userId.equals(jwtUserId)) {
+            throw new ForbiddenException("Auth token not owned by user");
+        }
+
+        return mapper.apply(jwtAsString);
+    }
+
     @ConstraintArguments
     @Override
     public void blockJwt(String jwtAsString) {
         checkNotBlank(jwtAsString, _BlockedJwtServiceImplBlockJwtArgumentsMeta.JWTASSTRING.name());
 
         Date expiresAt;
+        // parse JWT (without verifying its expiration or signature!) just to retrieve its expiration date
         try {
-            // parsing is NOT validation
             JWT jwt = SignedJWT.parse(jwtAsString);
             expiresAt = jwt.getJWTClaimsSet().getExpirationTime();
         } catch (ParseException e) {
@@ -60,7 +82,7 @@ public class BlockedJwtServiceImpl implements BlockedJwtService {
                         .between(Instant.now(), expiresAt.toInstant())
                         .toSeconds() + 60)
                 .build();
-        blockedTokenHash = blockedTokenRepository.save(blockedTokenHash);
+        blockedTokenRepository.save(blockedTokenHash);
         isJwtBlockedCache.put(cacheKey, true);
     }
 

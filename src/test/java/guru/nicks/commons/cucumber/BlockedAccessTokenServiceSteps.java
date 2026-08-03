@@ -26,6 +26,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -47,6 +48,8 @@ public class BlockedAccessTokenServiceSteps {
     private BlockedJwtService blockedJwtService;
     private boolean isBlockedResult;
     private String accessToken;
+    private String userId;
+    private String ifBelongsToUserResult;
 
     @Before
     public void beforeEachScenario() {
@@ -70,18 +73,7 @@ public class BlockedAccessTokenServiceSteps {
 
     @Given("a valid access token with an expiration of {long} seconds")
     public void aValidAccessTokenWithAnExpirationOfSeconds(long seconds) throws JOSEException {
-        var claims = new JWTClaimsSet.Builder()
-                .subject("test-user")
-                .issuer("https://example.com")
-                .expirationTime(Date.from(Instant.now().plusSeconds(seconds)))
-                .build();
-        var signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
-
-        // WARNING: this is simpler then using a key pair, but allowed for testing only!
-        // The secret length must be at least 256 bits.
-        var signer = new MACSigner("test-256-bit-secret-test-256-bit-secret-test-256-bit-secret");
-        signedJWT.sign(signer);
-        accessToken = signedJWT.serialize();
+        aValidAccessTokenWithSubjectAndAnExpirationOfSeconds("test-user", seconds);
     }
 
     @Given("the following access token value")
@@ -99,6 +91,41 @@ public class BlockedAccessTokenServiceSteps {
     public void blockJwtIsCalledForTheAccessToken() {
         textWorld.setLastException(catchThrowable(() ->
                 blockedJwtService.blockJwt(accessToken)));
+    }
+
+    @Given("a valid access token with subject {string} and an expiration of {long} seconds")
+    public void aValidAccessTokenWithSubjectAndAnExpirationOfSeconds(String subject, long seconds)
+            throws JOSEException {
+        var claims = new JWTClaimsSet.Builder()
+                .subject(subject)
+                .issuer("https://example.com")
+                .expirationTime(Date.from(Instant.now().plusSeconds(seconds)))
+                .build();
+        var signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
+
+        // WARNING: this is simpler than using a key pair, but allowed for testing only!
+        // The secret length must be at least 256 bits.
+        var signer = new MACSigner("test-256-bit-secret-test-256-bit-secret-test-256-bit-secret");
+        signedJWT.sign(signer);
+        accessToken = signedJWT.serialize();
+    }
+
+    @Given("the user ID is {string}")
+    public void theUserIdIs(String userId) {
+        this.userId = userId;
+    }
+
+    @When("'ifBelongsToUser' is called for the access token")
+    public void ifBelongsToUserIsCalledForTheAccessToken() {
+        textWorld.setLastException(catchThrowable(() ->
+                ifBelongsToUserResult = blockedJwtService.ifBelongsToUser(accessToken, userId, Function.identity())));
+    }
+
+    @Then("the mapper should have been called with the access token")
+    public void theMapperShouldHaveBeenCalledWithTheAccessToken() {
+        assertThat(ifBelongsToUserResult)
+                .as("mapper result")
+                .isEqualTo(accessToken);
     }
 
     @Then("the result should be {booleanValue}")
