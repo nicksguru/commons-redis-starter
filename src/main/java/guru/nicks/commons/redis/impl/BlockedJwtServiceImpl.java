@@ -32,7 +32,7 @@ public class BlockedJwtServiceImpl implements BlockedJwtService {
      * @see #isJwtBlocked(Jwt)
      */
     private final Cache<String, Boolean> isJwtBlockedCache = Caffeine.newBuilder()
-            .maximumSize(10_000)
+            .maximumSize(2000)
             .expireAfterWrite(Duration.ofMinutes(IS_JWT_BLOCKED_CACHE_TTL_MINUTES))
             .build();
 
