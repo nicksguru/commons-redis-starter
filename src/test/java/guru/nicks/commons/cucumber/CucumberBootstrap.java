@@ -7,7 +7,7 @@ import guru.nicks.commons.redis.config.CommonsRedisCacheAutoConfiguration;
 import guru.nicks.commons.test.RedisContainerRunner;
 
 import io.cucumber.spring.CucumberContextConfiguration;
-import org.redisson.spring.starter.RedissonAutoConfigurationV2;
+import org.redisson.spring.starter.RedissonAutoConfigurationV4;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,12 +32,12 @@ import org.springframework.test.context.TestPropertySource;
         //"logging.level.root=DEBUG",
 
         // needed for component scanners, such as Spring Data
-        "app.rootPackage=guru.nicks",
+        "app.rootPackage=guru.nicks.commons",
 
         // each cache manager corresponds to a certain TTL
         "cache.inMemory.maxEntriesPerCacheManager=50000",
 })
 @Import({CommonsRedisAutoConfiguration.class, CommonsRedisCacheAutoConfiguration.class,
-        RedissonAutoConfigurationV2.class})
+        RedissonAutoConfigurationV4.class})
 public class CucumberBootstrap {
 }
